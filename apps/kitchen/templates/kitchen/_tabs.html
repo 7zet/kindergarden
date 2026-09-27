@@ -1,0 +1,4 @@
+<div class="row" style="margin-bottom:16px;overflow:auto">
+{% for url_name,label in tabs %}<a class="btn {% if request.resolver_match.url_name == url_name %}pri{% endif %}" href="{% url url_name %}">{{ label }}</a>{% endfor %}
+</div>
+

@@ -1,0 +1,36 @@
+name: Xato hisoboti
+description: Qayta ishlab chiqariladigan xatoni yuboring
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Muammo
+      description: Nima bo'ldi va nima bo'lishi kerak edi?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Qayta ishlab chiqarish
+      placeholder: "1. ...\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versiya/commit
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Jiddiylik
+      options: [P0 — ma'lumot/xavfsizlik, P1 — asosiy funksiya, P2 — noqulaylik, P3 — sayqal]
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Muhit
+      description: Brauzer, telefon, OS va kerak bo'lsa log (maxfiy ma'lumotsiz)
+

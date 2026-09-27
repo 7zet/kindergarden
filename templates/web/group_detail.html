@@ -1,0 +1,51 @@
+{% extends "base.html" %}{% load web_extras %}
+{% block content %}
+<div class="top"><h2>{{ group.name }}</h2>
+<div class="grid">
+  <div class="metric"><div class="l">Bolalar</div>
+    <div class="v">{{ group.active_count }} / {{ group.capacity }}</div>
+    {% if group.reserved_count %}<div class="help">+{{ group.reserved_count }} qabul qilingan</div>{% endif %}</div>
+  <div class="metric"><div class="l">Bugun keldi</div>
+    <div class="v">{{ group.present_today }}</div></div>
+  <div class="metric"><div class="l">Holat</div>
+    <div class="v" style="font-size:15px">{{ group.occupancy_display }}</div></div>
+  <div class="metric"><div class="l">Ta'lim tili</div>
+    <div class="v" style="font-size:15px">{{ group.get_language_display }}</div></div>
+</div>
+
+<div class="card">
+<table style="max-width:520px">
+  <tr><td class="muted" style="width:170px">Asosiy tarbiyachi</td>
+      <td>{{ group.lead_teacher.full_name|default:"—" }}</td></tr>
+  <tr><td class="muted">Yordamchilar</td><td>{{ group.assistant_names }}</td></tr>
+  <tr><td class="muted">Xona</td><td>{{ group.room_number|default:"—" }}</td></tr>
+  <tr><td class="muted">Nisbat</td>
+      <td>{{ group.ratio_display }}
+      {% if group.max_ratio %}<span class="sub">(me'yor {{ group.max_ratio }}:1)</span>{% endif %}
+      {% if group.ratio_exceeded %}<span class="tag t-void">me'yordan yuqori</span>{% endif %}</td></tr>
+  <tr><td class="muted">Ish vaqti</td><td>{{ group.working_hours }}</td></tr>
+  <tr><td class="muted">Yosh oralig'i</td>
+      <td>{% if group.age_from %}{{ group.age_from }}–{{ group.age_to }} yosh{% else %}—{% endif %}</td></tr>
+  <tr><td class="muted">Standart tarif</td>
+      <td>{{ group.default_tariff.name|default:"—" }}</td></tr>
+</table>
+</div>
+
+<div class="card">
+<form method="get" style="margin-bottom:12px">
+  <select name="period" class="input select" style="width:auto" onchange="this.form.submit()">
+    {% for p in periods %}<option value="{{ p|date:'Y-m' }}"
+      {% if p == period %}selected{% endif %}>{{ p|date:"F Y" }}</option>{% endfor %}
+  </select>
+</form>
+<table>
+<tr><th>Bola</th><th>Tarif</th><th class="num">Hisoblangan</th><th class="num">Qoldiq</th><th>Holat</th></tr>
+{% for r in rows %}
+<tr><td><a href="{% url 'child_detail' r.e.child.id %}">{{ r.e.child.full_name }}</a></td>
+<td class="sub">{{ r.e.tariff.name }}</td>
+<td class="num">{% if r.invoice %}{{ r.invoice.total_amount|som }}{% else %}—{% endif %}</td>
+<td class="num {% if r.balance > 0 %}red{% endif %}">{{ r.balance|som }}</td>
+<td>{% if r.invoice %}<span class="tag t-{{ r.invoice.status }}">{{ r.invoice.get_status_display }}</span>{% else %}<span class="muted">invoys yo'q</span>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">Bolalar yo'q</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}{% load web_extras %}
+{% block content %}
+<div class="top"><h2>To'lovlar</h2>
+<div class="row">
+  <a class="btn" href="{% url 'payment_list' %}">Tushgan to'lovlar</a>
+  <a class="btn pri" href="{% url 'payment_new' %}">+ To'lov</a>
+</div></div>
+
+<div class="card">
+<div class="row" style="margin-bottom:12px;justify-content:space-between">
+  <form method="get" class="row">
+    <select name="period" class="input select" style="width:auto">
+      {% for p in periods %}<option value="{{ p|date:'Y-m' }}" {% if p == period %}selected{% endif %}>{{ p|date:"F Y" }}</option>{% endfor %}
+    </select>
+    <select name="status" class="input select" style="width:auto">
+      <option value="">Barcha holat</option>
+      {% for v,l in statuses %}<option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+    <button class="btn">Ko'rsatish</button>
+  </form>
+  <form method="post" action="{% url 'generate_invoices' %}">{% csrf_token %}
+    <input type="hidden" name="period" value="{{ period|date:'Y-m' }}">
+    <input type="hidden" name="period" value="{{ period|date:'Y-m' }}">
+    <button class="btn pri">{{ period|date:"F Y" }} uchun invoys chiqarish</button>
+  </form>
+</div>
+
+<div class="row" style="margin-bottom:10px">
+  <span class="sub">Hisoblangan: <b>{{ total_charged|som }}</b></span>
+  <span class="sub">To'langan: <b class="green">{{ total_paid|som }}</b></span>
+</div>
+
+<table>
+<tr><th>Raqam</th><th>Bola</th><th>Guruh</th><th class="num">Summa</th><th class="num">To'langan</th><th class="num">Qoldiq</th><th>Holat</th></tr>
+{% for i in invoices %}
+<tr><td><a href="{% url 'invoice_detail' i.id %}">{{ i.number }}</a></td>
+<td><a href="{% url 'child_detail' i.enrollment.child.id %}">{{ i.enrollment.child.full_name }}</a></td>
+<td class="sub">{{ i.enrollment.group.name }}</td>
+<td class="num">{{ i.total_amount|som }}</td>
+<td class="num">{{ i.paid_amount|som }}</td>
+<td class="num {% if i.balance > 0 %}red{% endif %}">{{ i.balance|som }}</td>
+<td><span class="tag t-{{ i.status }}">{{ i.get_status_display }}</span></td></tr>
+{% empty %}<tr><td colspan="7" class="muted">Bu oy uchun invoys yo'q. Yuqoridagi tugmani bosing.</td></tr>{% endfor %}
+</table>
+{% include "partials/pager.html" %}</div>
+{% endblock %}

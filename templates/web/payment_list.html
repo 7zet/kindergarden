@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% load web_extras %}
+{% block content %}
+<div class="top"><h2>Tushgan to'lovlar</h2>
+<div class="row"><a class="btn" href="{% url 'invoice_list' %}">Invoyslar</a>
+<a class="btn pri" href="{% url 'payment_new' %}">+ To'lov</a></div></div>
+<div class="card"><table>
+<tr><th>Sana</th><th>Bola</th><th>Usul</th><th class="num">Summa</th><th class="num">Avansda</th><th>Izoh</th><th></th></tr>
+{% for p in payments %}
+<tr><td class="sub">{{ p.received_at|date:"d.m.Y H:i" }}</td>
+<td>{% if p.child %}<a href="{% url 'child_detail' p.child.id %}">{{ p.child.full_name }}</a>{% else %}<span class="red">aniqlanmagan</span>{% endif %}</td>
+<td class="sub">{{ p.get_method_display }}</td>
+<td class="num">{{ p.amount|som }}</td>
+<td class="num muted">{{ p.free|som }}</td>
+<td class="sub">{{ p.note }}</td>
+<td class="num"><a class="btn" style="padding:3px 8px;font-size:11px" href="{% url 'payment_receipt' p.id %}" target="_blank">Kvitansiya</a>
+{% if p.is_reversed %}<span class="tag t-void">bekor</span>
+{% elif perms.billing.add_payment %}<form method="post" action="{% url 'payment_reverse' p.id %}" data-confirm="To'lovni bekor qilasizmi? Bu amal taqsimlangan summani invoyslardan bo'shatadi." style="display:inline">{% csrf_token %}
+<button class="btn" style="padding:3px 8px;font-size:11px">Bekor</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="6" class="muted">To'lov yo'q</td></tr>{% endfor %}
+</table>
+{% include "partials/pager.html" %}</div>
+{% endblock %}

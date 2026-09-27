@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% load web_extras %}
+{% block content %}
+<div class="top"><h2>Qarzlar</h2><span class="sub">Jami: <b class="red">{{ total|som }}</b></span></div>
+<div class="grid">
+  <div class="metric"><div class="l">Muddat kelmagan</div><div class="v">{{ buckets.0|som }}</div></div>
+  <div class="metric"><div class="l">1–30 kun</div><div class="v">{{ buckets.30|som }}</div></div>
+  <div class="metric"><div class="l">31–60 kun</div><div class="v" style="color:#8a5a00">{{ buckets.60|som }}</div></div>
+  <div class="metric"><div class="l">60+ kun</div><div class="v red">{{ buckets.90|som }}</div></div>
+</div>
+<div class="card"><table>
+<tr><th>Bola</th><th>Guruh</th><th>Davr</th><th class="num">Qoldiq</th><th class="num">Kechikish</th><th></th></tr>
+{% for r in rows %}
+<tr><td><a href="{% url 'child_detail' r.i.enrollment.child.id %}">{{ r.i.enrollment.child.full_name }}</a></td>
+<td class="sub">{{ r.i.enrollment.group.name }}</td>
+<td class="sub">{{ r.i.period|date:"m.Y" }}</td>
+<td class="num red">{{ r.bal|som }}</td>
+<td class="num">{% if r.days > 0 %}<span class="tag {% if r.days > 60 %}t-void{% else %}t-partial{% endif %}">{{ r.days }} kun</span>{% else %}<span class="muted">muddat kelmagan</span>{% endif %}</td>
+<td class="num"><a class="btn" target="_blank" href="{% url 'child_debt_statement' r.i.enrollment.child.id %}">Dalolatnoma</a></td></tr>
+{% empty %}<tr><td colspan="5" class="muted">Qarzdorlar yo'q</td></tr>{% endfor %}
+</table>
+{% include "partials/pager.html" %}</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% load kitchen_units %}
+{% block title %}Oshxona{% endblock %}
+{% block content %}
+<div class="top"><div><h2>Kunlik taomnoma</h2><div class="sub">Reja davomat asosida tasdiqlanganda muzlatiladi</div></div>
+<div class="row"><a class="btn" href="?date={{ prev|date:'Y-m-d' }}">←</a><input type="date" value="{{ day|date:'Y-m-d' }}" onchange="location='?date='+this.value"><a class="btn" href="?date={{ next|date:'Y-m-d' }}">→</a></div></div>
+{% include "kitchen/_tabs.html" %}
+<div class="grid cols-3">
+ <div class="card metric"><div class="sub">Davomat</div><div class="num">{{ present }} bola</div></div>
+ <div class="card metric"><div class="sub">Holat</div><div class="num" style="font-size:18px">{{ menu.get_status_display }}</div></div>
+ <div class="card metric"><div class="sub">Muzlatilgan hisob</div><div class="num">{{ menu.children_count }} bola</div></div>
+</div>
+<div class="card"><div class="top"><h3>Taomlar</h3>
+{% if menu.status == 'draft' and perms.kitchen.add_dailymenu %}<form method="post" class="row">{% csrf_token %}<input type="hidden" name="action" value="add_dish"><select name="dish" required><option value="">Taom tanlang</option>{% for d in available_dishes %}<option value="{{ d.pk }}">{{ d.get_meal_type_display }} — {{ d.name }}</option>{% endfor %}</select><button class="btn">Qo‘shish</button></form>{% endif %}</div>
+{% if entries %}<div class="table-wrap"><table class="table"><thead><tr><th>Ovqat turi</th><th>Taom</th><th></th></tr></thead><tbody>{% for e in entries %}<tr><td>{{ e.get_meal_type_display }}</td><td>{{ e.dish.name }}</td><td>{% if menu.status == 'draft' and perms.kitchen.add_dailymenu %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_dish"><input type="hidden" name="entry" value="{{ e.pk }}"><button class="btn">Olib tashlash</button></form>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty"><div>🍲</div><p>Bu kun uchun hali taom tanlanmagan.</p></div>{% endif %}
+{% if menu.status == 'draft' and perms.kitchen.change_dailymenu %}<form method="post" action="{% url 'kitchen_menu_approve' menu.pk %}">{% csrf_token %}<button class="btn pri">Taomnomani tasdiqlash</button></form>{% endif %}</div>
+{% if lines %}<div class="card"><h3>Masalliqlar: reja va fakt</h3><form method="post" action="{% url 'kitchen_menu_fact' menu.pk %}"><div class="table-wrap"><table class="table"><thead><tr><th>Masalliq</th><th>Reja</th><th>Fakt</th><th>Farq</th><th>%</th></tr></thead><tbody>
+{% for l in lines %}<tr><td>{{ l.ingredient.name }}</td><td>{{ l.planned_g|kitchen_quantity:l.ingredient }}</td><td>{% if menu.status == 'approved' %}<input name="fact_{{ l.ingredient_id }}" type="number" step="0.01" min="0.01" required style="max-width:130px" placeholder="{{ l.ingredient.display_unit }}">{% else %}{{ l.actual_g|kitchen_quantity:l.ingredient }}{% endif %}</td><td class="{% if l.diff_g > 0 %}red{% endif %}">{{ l.diff_g|kitchen_quantity:l.ingredient }}</td><td>{{ l.diff_pct|floatformat:1|default:'—' }}</td></tr>{% endfor %}</tbody></table></div>
+{% if menu.status == 'approved' and perms.kitchen.add_stockmove %}{% csrf_token %}<button class="btn pri">Faktni saqlash</button>{% endif %}</form></div>{% endif %}
+{% endblock %}

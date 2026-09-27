@@ -1,0 +1,50 @@
+{% extends "base.html" %}{% load web_extras %}
+{% block content %}
+<div class="top"><h2>{{ invoice.number }}</h2>
+<div class="row"><a class="btn" href="{% url 'invoice_list' %}">Orqaga</a>
+<a class="btn pri" href="{% url 'invoice_pdf' invoice.id %}" target="_blank">PDF / Chop etish</a>
+{% if perms.billing.add_invoice and invoice.status != "void" %}
+<form method="post" action="{% url 'invoice_void' invoice.id %}"
+ onsubmit="return confirm('Invoysni bekor qilasizmi? To\'lovlar bo\'shatiladi.')">{% csrf_token %}
+<input class="input" name="note" placeholder="Sabab" style="width:170px" required>
+<button class="btn">Bekor qilish</button></form>{% endif %}</div></div>
+
+<div class="card" style="max-width:620px">
+<table>
+<tr><td class="muted">Bola</td><td><a href="{% url 'child_detail' invoice.enrollment.child.id %}">{{ invoice.enrollment.child.full_name }}</a></td></tr>
+<tr><td class="muted">Davr</td><td>{{ invoice.period|date:"F Y" }}</td></tr>
+<tr><td class="muted">Muddat</td><td>{{ invoice.due_at|date:"d.m.Y" }}</td></tr>
+<tr><td class="muted">Holat</td><td><span class="tag t-{{ invoice.status }}">{{ invoice.get_status_display }}</span></td></tr>
+</table>
+</div>
+
+<div class="card" style="max-width:620px">
+<h2 style="font-size:15px;margin-bottom:10px">Qatorlar</h2>
+<table>
+{% for l in lines %}
+<tr><td>{{ l.title }}</td><td class="num {% if l.amount < 0 %}green{% endif %}">{{ l.amount|som }}</td></tr>
+{% endfor %}
+<tr><td><b>Jami</b></td><td class="num"><b>{{ invoice.total_amount|som }}</b></td></tr>
+<tr><td class="muted">To'langan</td><td class="num green">{{ invoice.paid|som }}</td></tr>
+<tr><td><b>Qoldiq</b></td><td class="num {% if invoice.balance > 0 %}red{% endif %}"><b>{{ invoice.balance|som }}</b></td></tr>
+</table>
+</div>
+
+{% if perms.billing.add_invoice and invoice.status != "void" %}
+<div class="card" style="max-width:620px">
+<h2 style="font-size:15px;margin-bottom:10px">Qo'lda tuzatish</h2>
+<form method="post" action="{% url 'invoice_add_line' invoice.id %}" class="row">{% csrf_token %}
+<input class="input" name="title" placeholder="Izoh" style="flex:1" required>
+<input class="input" name="amount" type="text" inputmode="decimal" data-money="true" placeholder="Summa (manfiy ham)" style="width:170px" required>
+<button class="btn">Qo'shish</button></form>
+<p class="help" style="margin-top:8px">Chegirma uchun manfiy summa yozing, masalan -100000</p>
+</div>{% endif %}
+
+{% if allocations %}
+<div class="card" style="max-width:620px">
+<h2 style="font-size:15px;margin-bottom:10px">Yopilgan to'lovlar</h2>
+<table>{% for a in allocations %}
+<tr><td class="sub">{{ a.payment.received_at|date:"d.m.Y" }} — {{ a.payment.get_method_display }}</td>
+<td class="num">{{ a.amount|som }}</td></tr>{% endfor %}</table>
+</div>{% endif %}
+{% endblock %}

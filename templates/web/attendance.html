@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top"><h2>{{ group.name }} — davomat</h2>
+<a class="btn" href="{% url 'group_detail' group.id %}">Orqaga</a></div>
+
+<div class="card">
+<div class="row" style="margin-bottom:12px;justify-content:space-between">
+  <div class="row">
+    <a class="btn" href="?day={{ prev|date:'Y-m-d' }}">←</a>
+    <b>{{ day|date:"d.m.Y, l" }}</b>
+    <a class="btn" href="?day={{ next|date:'Y-m-d' }}">→</a>
+  </div>
+  <div class="sub">
+    <b class="green">{{ stats.present }}</b> keldi ·
+    <b class="red">{{ stats.absent }}</b> yo'q
+    {% if stats.unmarked %} · <b>{{ stats.unmarked }}</b> belgilanmagan{% endif %}
+    {% if group.staff_count %} · {{ group.staff_count }} tarbiyachi ·
+      <span {% if group.ratio_exceeded %}class="red"{% endif %}>{{ group.ratio_display }}</span>{% endif %}
+  </div>
+</div>
+
+{% if locked %}<div class="msg err">Bu oy yopilgan. O'zgartirish uchun direktorga murojaat qiling.</div>{% endif %}
+{% if not is_working_day %}<div class="warn"><b>Dam olish kuni.</b> Davomat kiritish uchun avval Sozlamalar → Kalendar bo'limida bu sanani ish kuni sifatida belgilang.</div>{% endif %}
+<form method="post">{% csrf_token %}
+<table>
+{% for r in rows %}
+<tr>
+<td style="width:34%">{{ r.e.child.full_name }}
+  {% if r.e.child.allergies %}<span class="red" title="Allergiya: {{ r.e.child.allergies }}">●</span>{% endif %}
+  {% if r.note %}<br><span class="sub">{{ r.note }}</span>{% endif %}</td>
+<td><div class="att">
+  <span class="p"><input type="radio" id="p{{ forloop.counter }}" name="s_{{ r.e.id }}" value="present" {% if r.current == 'present' %}checked{% endif %}><label for="p{{ forloop.counter }}">Keldi</label></span>
+  <span class="l"><input type="radio" id="l{{ forloop.counter }}" name="s_{{ r.e.id }}" value="late" {% if r.current == 'late' %}checked{% endif %}><label for="l{{ forloop.counter }}">Kech</label></span>
+  <span class="a"><input type="radio" id="u{{ forloop.counter }}" name="s_{{ r.e.id }}" value="unexcused" {% if r.current == 'unexcused' %}checked{% endif %}><label for="u{{ forloop.counter }}">Kelmadi</label></span>
+  <span class="s"><input type="radio" id="s{{ forloop.counter }}" name="s_{{ r.e.id }}" value="sick" {% if r.current == 'sick' %}checked{% endif %}><label for="s{{ forloop.counter }}">Kasal</label></span>
+  <span class="v"><input type="radio" id="v{{ forloop.counter }}" name="s_{{ r.e.id }}" value="vacation" {% if r.current == 'vacation' %}checked{% endif %}><label for="v{{ forloop.counter }}">Ta'til</label></span>
+</div></td>
+<td style="width:26%"><input class="input" name="n_{{ r.e.id }}" value="{{ r.note }}"
+  placeholder="Izoh" style="font-size:12px;padding:5px 8px"></td>
+</tr>
+{% empty %}<tr><td class="muted">Bu sanada guruhda bola yo'q</td></tr>{% endfor %}
+</table>
+{% if rows and is_working_day %}<button class="btn pri" style="margin-top:14px">Saqlash</button>{% endif %}
+</form>
+</div>
+<p class="sub">Izohga harorat, ota-ona bilan aloqa yoki boshqa tafsilotni yozing.
+Davomat oylik to'lovga ta'sir qilmaydi.</p>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<div class="top"><div><h2>Telegramga ulash</h2><div class="sub">{{ contact.full_name }} · {{ contact.child.full_name }}</div></div><a class="btn" href="{% url 'child_detail' contact.child.id %}">Orqaga</a></div>
+<div class="card" style="max-width:620px">
+{% if link %}<p style="margin-bottom:12px">Quyidagi havolani aynan shu ota-onaga yuboring. Havola 15 daqiqa va faqat bir marta ishlaydi.</p>
+<input class="input" value="{{ link }}" readonly onclick="this.select()"><div class="row" style="margin-top:12px"><a class="btn pri" href="{{ link }}" target="_blank" rel="noopener">Telegramda ochish</a></div>
+{% else %}<div class="warn">`.env` faylida TELEGRAM_BOT_USERNAME hali sozlanmagan. Bot username kiritilgach ulash havolasi ishlaydi.</div>{% endif %}
+</div>{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:10vh auto;text-align:center">
+  <h2 style="margin-bottom:8px">Ruxsat yo'q</h2>
+  <p class="sub" style="margin-bottom:16px">{{ exception|default:"Bu bo'limga kirish huquqingiz yo'q." }}</p>
+  <a class="btn" href="/">Bosh sahifa</a>
+</div>
+{% endblock %}

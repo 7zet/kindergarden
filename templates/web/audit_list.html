@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top"><h2>Audit jurnali</h2>
+<form method="get"><select name="action" class="input select" style="width:auto" onchange="this.form.submit()">
+<option value="">Barcha amallar</option>
+{% for a in actions %}<option value="{{ a }}" {% if a == action %}selected{% endif %}>{{ a }}</option>{% endfor %}
+</select></form></div>
+<div class="card">
+<table><tr><th>Vaqt</th><th>Kim</th><th>Amal</th><th>Obyekt</th><th>Izoh</th></tr>
+{% for r in rows %}
+<tr><td class="sub">{{ r.created_at|date:"d.m.Y H:i" }}</td>
+<td class="sub">{{ r.user.full_name|default:"tizim" }}</td>
+<td><span class="tag t-issued">{{ r.action }}</span></td>
+<td class="sub">{{ r.object_type }}</td>
+<td class="sub">{{ r.note }}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">Yozuv yo'q</td></tr>{% endfor %}
+</table>
+{% include "partials/pager.html" %}
+</div>
+<p class="sub">Audit yozuvlari o'chirilmaydi va tahrirlanmaydi.</p>
+{% endblock %}

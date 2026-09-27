@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+<div class="top"><h2>{{ title }}</h2>
+  <a class="btn" href="{% if back_url %}{{ back_url }}{% else %}{% url back %}{% endif %}">{% translate "Orqaga" %}</a></div>
+<div class="card" style="max-width:540px">
+  <form method="post"{% if multipart %} enctype="multipart/form-data"{% endif %}>{% csrf_token %}
+    {% if form.non_field_errors %}<div class="msg err">{{ form.non_field_errors }}</div>{% endif %}
+    {% for f in form %}
+      <div class="field">
+        <label>{{ f.label }}</label>
+        {{ f }}
+        {% if f.help_text %}<div class="help">{{ f.help_text }}</div>{% endif %}
+        {% if f.errors %}<div class="help" style="color:#b3261e">{{ f.errors|join:", " }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <button class="btn pri">{% translate "Saqlash" %}</button>
+  </form>
+</div>
+{% endblock %}

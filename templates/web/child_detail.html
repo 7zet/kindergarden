@@ -1,0 +1,161 @@
+{% extends "base.html" %}{% load web_extras %}
+{% block content %}
+<div class="top">
+  <div>
+    <h2>{{ child.full_name }}</h2>
+    <div class="sub">{{ child.code }} · {{ child.age_display }}
+      {% if child.get_gender_display %}· {{ child.get_gender_display }}{% endif %}
+      {% if current %}· {{ current.group.name }}
+      <span class="tag {% if current.status == 'active' %}t-paid{% elif current.status == 'paused' %}t-partial{% else %}t-issued{% endif %}">{{ current.status_display }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="row">
+    {% if perms.school.add_child %}<a class="btn" href="{% url 'child_edit' child.id %}">Tahrir</a>
+    <a class="btn pri" href="{% url 'enroll' child.id %}">+ Shartnoma</a>{% endif %}
+  </div>
+</div>
+
+{% if child.has_warning %}
+<div class="warn">
+  {% if child.allergies %}<b>Allergiya:</b> {{ child.allergies }}{% endif %}
+  {% if child.allergies and child.health_note %}<br>{% endif %}
+  {% if child.health_note %}<b>Sog'liq:</b> {{ child.health_note }}{% endif %}
+</div>
+{% endif %}
+
+<div class="tabs">
+  <button type="button" data-tab="overview">Umumiy</button>
+  <button type="button" data-tab="enrollments">Shartnomalar</button>
+  <button type="button" data-tab="attendance">Davomat</button>
+  {% if can_finance %}<button type="button" data-tab="billing">Moliya</button>{% endif %}
+</div>
+
+<div class="pane" id="overview">
+  <div class="grid">
+    {% if can_finance %}<div class="metric"><div class="l">Qoldiq</div>
+      <div class="v {% if balance > 0 %}red{% elif balance < 0 %}green{% endif %}">{{ balance|som }}</div>
+      <div class="help">{% if balance < 0 %}avansda{% elif balance > 0 %}qarz{% else %}toza{% endif %}</div></div>{% endif %}
+    <div class="metric"><div class="l">Bugun</div>
+      <div class="v" style="font-size:16px">
+        {% if today_mark %}{% if today_mark.status == "present" %}<span class="green">Keldi</span>
+        {% else %}<span class="red">{{ today_mark.get_reason_display|default:"Kelmadi" }}</span>{% endif %}
+        {% else %}<span class="muted">Belgilanmagan</span>{% endif %}</div></div>
+    <div class="metric"><div class="l">Tug'ilgan</div>
+      <div class="v" style="font-size:16px">{{ child.birth_date|date:"d.m.Y" }}</div></div>
+  </div>
+
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Sog'liq va xavfsizlik</h2>
+    <table style="max-width:620px">
+      <tr><td class="muted">Allergiya</td><td>{{ child.allergies|default:"—" }}</td></tr>
+      <tr><td class="muted">Sog'liq izohi</td><td>{{ child.health_note|default:"—" }}</td></tr>
+      <tr><td class="muted">Shifokor</td><td>{{ child.doctor_name|default:"—" }}{% if child.doctor_phone %} — {{ child.doctor_phone }}{% endif %}</td></tr>
+      <tr><td class="muted">Manzil</td><td>{{ child.address|default:"—" }}</td></tr>
+      <tr><td class="muted">Jins</td><td>{{ child.get_gender_display|default:"—" }}</td></tr>
+    </table></div>
+
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Kontaktlar</h2>
+    {% if perms.school.add_child %}<a class="btn pri" href="{% url 'contact_new' child.id %}">+ Kontakt</a>{% endif %}
+    <table>
+      <tr><th>F.I.O.</th><th>Kimligi</th><th>Telefon</th><th>Turi</th><th>Ruxsatlar</th><th class="num">Amallar</th></tr>
+      {% for contact in contacts %}
+      <tr><td>{{ contact.full_name }}{% if contact.is_primary %} <span class="tag t-paid">asosiy</span>{% endif %}{% if contact.is_payer %} <span class="tag t-issued">to'lovchi</span>{% endif %}</td>
+      <td class="sub">{{ contact.relation }}</td><td>{{ contact.phone }}</td><td class="sub">{{ contact.get_kind_display }}</td>
+      <td>{% if contact.can_pickup %}<span class="tag t-paid">olib ketadi</span>{% endif %}{% if contact.has_app_access %}<span class="tag t-issued">kabinet</span>{% endif %}{% if contact.can_see_billing %}<span class="tag t-issued">moliya</span>{% endif %}</td>
+      <td class="num">{% if perms.school.add_child %}<a class="btn" href="{% url 'contact_edit' child.id contact.id %}">Tahrir</a>
+        <a class="btn" href="{% url 'telegram_link' child.id contact.id %}">Telegram</a>
+        <form method="post" action="{% url 'contact_delete' child.id contact.id %}" style="display:inline" onsubmit="return confirm('Kontakt o\'chirilsinmi?')">{% csrf_token %}<button class="btn">O'chirish</button></form>{% endif %}</td></tr>
+      {% empty %}<tr><td colspan="6" class="muted">Kontakt yo'q. Kamida bitta ota-ona qo'shing.</td></tr>{% endfor %}
+    </table></div>
+
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Qo'shimcha ma'lumot</h2>
+    <table style="max-width:520px">
+      {% if child.doctor_name %}<tr><td class="muted">Shifokor</td>
+        <td>{{ child.doctor_name }} — {{ child.doctor_phone }}</td></tr>{% endif %}
+      {% if child.address %}<tr><td class="muted">Manzil</td><td>{{ child.address }}</td></tr>{% endif %}
+      {% if child.note %}<tr><td class="muted">Izoh</td><td>{{ child.note }}</td></tr>{% endif %}
+    </table></div>
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Maxfiy hujjatlar</h2>
+    {% if perms.school.add_child %}<a class="btn pri" href="{% url 'child_document_upload' child.id %}">+ Hujjat</a>{% endif %}
+    <table><tr><th>Nomi</th><th>Turi</th><th>Amal qiladi</th><th></th></tr>
+    {% for d in documents %}<tr><td>{{ d.title }}</td><td>{{ d.get_type_display }}</td><td>{{ d.valid_until|date:"d.m.Y"|default:"—" }}</td><td class="num"><a class="btn" href="{% url 'child_document_download' d.id %}">Yuklab olish</a><form method="post" action="{% url 'child_document_archive' d.id %}" style="display:inline">{% csrf_token %}<button class="btn">Arxiv</button></form></td></tr>
+    {% empty %}<tr><td colspan="4" class="muted">Hujjat yo'q</td></tr>{% endfor %}</table></div>
+</div>
+
+<div class="pane" id="enrollments">
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Shartnomalar</h2>
+  <table><tr><th>Guruh</th><th>Tarif</th><th>Chegirma</th><th>Davr</th><th>Holat</th><th></th></tr>
+  {% for e in enrollments %}
+  <tr><td>{{ e.group.name }}</td><td>{{ e.tariff.name }} — {{ e.tariff.monthly_amount|som }}</td>
+  <td class="sub">{{ e.discount.name|default:"—" }}</td>
+  <td class="sub">{{ e.started_at|date:"d.m.Y" }} — {{ e.ended_at|date:"d.m.Y"|default:"davom etmoqda" }}</td>
+  <td><span class="tag {% if e.status == 'active' %}t-paid{% elif e.status == 'paused' %}t-partial{% elif e.status == 'enrolled' %}t-issued{% else %}t-issued{% endif %}">{{ e.status_display }}</span></td>
+  <td class="num"><a href="{% url 'enrollment_contract' e.id %}" target="_blank" class="btn" style="padding:3px 8px;font-size:11px">Shartnoma PDF</a>
+  {% if not e.ended_at and perms.school.add_child %}
+    <a href="{% url 'enrollment_transfer' e.id %}" class="btn" style="padding:3px 8px;font-size:11px">Guruhga ko'chirish</a>
+    <form method="post" action="{% url 'enrollment_pause' e.id %}" style="display:inline">{% csrf_token %}
+      <button class="btn" style="padding:3px 8px;font-size:11px">{% if e.is_paused %}Davom{% else %}To'xtatish{% endif %}</button></form>
+    <a href="{% url 'enrollment_end' e.id %}" class="btn" style="padding:3px 8px;font-size:11px">Yopish</a>
+  {% endif %}</td></tr>
+  {% empty %}<tr><td colspan="6" class="muted">Shartnoma yo'q</td></tr>{% endfor %}
+  </table></div>
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Kirish / chiqish tarixi</h2><table><tr><th>Vaqt</th><th>Amal</th><th>Kontakt</th><th>Xodim</th><th>Usul</th><th>Izoh</th></tr>
+  {% for e in check_events %}<tr><td class="sub">{{ e.occurred_at|date:"d.m.Y H:i" }}</td><td>{{ e.get_kind_display }}</td><td>{{ e.contact.full_name|default:"—" }}{% if e.contact %} · {{ e.contact.relation }}{% endif %}</td><td>{{ e.recorded_by.full_name }}</td><td>{{ e.get_method_display }}{% if e.synced_offline %} <span class="tag t-partial">offline</span>{% endif %}{% if e.is_override %} <span class="tag t-void">direktor ruxsati</span>{% endif %}</td><td class="sub">{% if e.override_reason %}{{ e.override_reason }}{% else %}{{ e.note }}{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="muted">Kirish-chiqish yozuvi yo'q</td></tr>{% endfor %}</table></div>
+</div>
+
+<div class="pane" id="attendance">
+  <div class="grid">
+    <div class="metric"><div class="l">{{ period|date:"F" }} — keldi</div>
+      <div class="v green">{{ att_stats.present }}</div></div>
+    <div class="metric"><div class="l">Kasal</div>
+      <div class="v">{{ att_stats.sick }}</div></div>
+    <div class="metric"><div class="l">Kelmadi</div>
+      <div class="v red">{{ att_stats.absent }}</div></div>
+  </div>
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Oxirgi 60 kun</h2>
+  <table><tr><th>Sana</th><th>Guruh</th><th>Holat</th><th>Izoh</th></tr>
+  {% for a in attendance %}
+  <tr><td class="sub">{{ a.day|date:"d.m.Y, D" }}</td>
+  <td class="sub">{{ a.enrollment.group.name }}</td>
+  <td>{% if a.status == "present" %}<span class="tag t-paid">{% if a.arrived_at %}Kech keldi{% else %}Keldi{% endif %}</span>
+      {% else %}<span class="tag {% if a.reason == 'unexcused' %}t-void{% else %}t-partial{% endif %}">{{ a.get_reason_display|default:"Kelmadi" }}</span>{% endif %}</td>
+  <td class="sub">{{ a.note }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="muted">Yozuv yo'q</td></tr>{% endfor %}
+  </table></div>
+</div>
+
+{% if can_finance %}
+<div class="pane" id="billing">
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">Invoyslar</h2>
+  <table><tr><th>Davr</th><th>Raqam</th><th class="num">Hisoblangan</th><th class="num">To'langan</th><th class="num">Qoldiq</th><th>Holat</th></tr>
+  {% for i in invoices %}
+  <tr><td>{{ i.period|date:"m.Y" }}</td>
+  <td><a href="{% url 'invoice_detail' i.id %}">{{ i.number }}</a></td>
+  <td class="num">{{ i.total_amount|som }}</td><td class="num">{{ i.paid_amount|som }}</td>
+  <td class="num {% if i.balance > 0 %}red{% endif %}">{{ i.balance|som }}</td>
+  <td><span class="tag t-{{ i.status }}">{{ i.get_status_display }}</span></td></tr>
+  {% empty %}<tr><td colspan="6" class="muted">Invoys yo'q</td></tr>{% endfor %}
+  </table></div>
+
+  <div class="card"><h2 style="font-size:15px;margin-bottom:10px">To'lovlar</h2>
+  <table><tr><th>Sana</th><th>Usul</th><th class="num">Summa</th><th class="num">Taqsimlanmagan</th><th></th></tr>
+  {% for p in payments %}
+  <tr><td>{{ p.received_at|date:"d.m.Y H:i" }}</td><td class="sub">{{ p.get_method_display }}</td>
+  <td class="num">{{ p.amount|som }}</td>
+  <td class="num muted">{{ p.free|som }}</td><td class="num"><a class="btn" target="_blank" href="{% url 'payment_receipt' p.id %}">Kvitansiya</a></td></tr>
+  {% empty %}<tr><td colspan="4" class="muted">To'lov yo'q</td></tr>{% endfor %}
+  </table><a class="btn pri" target="_blank" href="{% url 'child_debt_statement' child.id %}">Qarzdorlik dalolatnomasi PDF</a></div>
+</div>
+{% endif %}
+<script>
+(() => {
+  const buttons = [...document.querySelectorAll('[data-tab]')], panes = [...document.querySelectorAll('.pane')];
+  const open = name => {
+    if (!panes.some(p => p.id === name)) name = buttons[0].dataset.tab;
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    panes.forEach(p => p.classList.toggle('active', p.id === name));
+  };
+  buttons.forEach(b => b.addEventListener('click', () => { location.hash = b.dataset.tab; open(b.dataset.tab); }));
+  open(location.hash.slice(1) || buttons[0].dataset.tab);
+})();
+</script>
+{% endblock %}

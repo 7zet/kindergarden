@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top"><h2>{{ group.name }} — tabel</h2>
+<div class="row">
+<form method="get"><select name="period" class="input select" style="width:auto" onchange="this.form.submit()">
+{% for p in periods %}<option value="{{ p|date:'Y-m' }}" {% if p == period %}selected{% endif %}>{{ p|date:"F Y" }}</option>{% endfor %}
+</select></form>
+<a class="btn" href="{% url 'attendance' group.id %}">Kunlik</a>
+</div></div>
+
+<div class="card">
+<div class="row" style="margin-bottom:12px;justify-content:space-between">
+  <div class="legend">
+    <span><span class="c c-present"></span> keldi</span>
+    <span><span class="c c-late"></span> kech / kasal</span>
+    <span><span class="c c-unexcused"></span> sababsiz</span>
+    <span><span class="c c-vacation"></span> ta'til</span>
+    <span><span class="c c-none"></span> belgilanmagan</span>
+  </div>
+  {% if is_locked %}
+    <span class="tag t-void">Oy yopilgan</span>
+    {% if perms.school.change_billingpolicy %}
+    <form method="post" action="{% url 'month_unlock' group.id %}" class="row">{% csrf_token %}
+      <input type="hidden" name="period" value="{{ period|date:'Y-m' }}">
+      <input class="input" name="note" placeholder="Ochish sababi" style="width:190px" required>
+      <button class="btn">Qayta ochish</button></form>{% endif %}
+  {% else %}
+    <form method="post" action="{% url 'month_lock' group.id %}">{% csrf_token %}
+      <input type="hidden" name="period" value="{{ period|date:'Y-m' }}">
+      <button class="btn pri">Oyni yopish</button></form>
+  {% endif %}
+</div>
+
+<div style="overflow-x:auto">
+<table class="tab">
+<tr><th style="text-align:left;min-width:150px"></th>
+{% for d in days %}<th style="text-align:center;color:#75736a"{% if d in exceptional_days %} title="Dam olish kunida oldin kiritilgan davomat"{% endif %}>{{ d|date:"j" }}{% if d in exceptional_days %}*{% endif %}</th>{% endfor %}
+<th style="text-align:right;padding-left:10px">keldi</th><th style="text-align:right">yo'q</th></tr>
+{% for r in rows %}
+<tr><td style="font-size:13px;padding:3px 6px 3px 0">{{ r.e.child.full_name }}</td>
+{% for c in r.cells %}<td style="text-align:center"><span class="c c-{{ c.code|default:'none' }}"></span></td>{% endfor %}
+<td class="num" style="font-size:12px;padding-left:10px">{{ r.present }}</td>
+<td class="num" style="font-size:12px">{{ r.absent }}</td></tr>
+{% empty %}<tr><td class="muted">Bu oyda bola yo'q</td></tr>{% endfor %}
+</table>
+</div>
+{% if exceptional_days %}<p class="sub" style="margin-top:10px">* Dam olish kunida oldin kiritilgan davomat yozuvi. Ma'lumot yashirinib qolmasligi uchun ko'rsatildi.</p>{% endif %}
+</div>
+
+{% if not is_locked %}
+<p class="sub">Oy yopilgach tarbiyachi davomatni o'zgartira olmaydi. Invoys chiqarishdan oldin yoping.</p>
+{% endif %}
+{% endblock %}

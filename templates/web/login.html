@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:380px;margin:9vh auto">
+  <div class="card" style="padding:28px;box-shadow:var(--shadow-md)">
+    <div class="brand" style="padding:0 0 24px"><span class="brand-mark">B</span><div><h1>Bog'cha OS</h1><small>BOSHQARUV PLATFORMASI</small></div></div>
+    <div class="sub">Xush kelibsiz</div><h2 style="margin:2px 0 20px">Hisobingizga kiring</h2>
+    {% if form.errors %}<div class="msg err">Telefon yoki parol noto'g'ri</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      <div class="field"><label>Telefon</label>
+        <input class="input" name="username" placeholder="+998 90 123 45 67" autofocus></div>
+      <div class="field"><label>Parol</label>
+        <input class="input" type="password" name="password"></div>
+      <button class="btn pri" style="width:100%;margin-top:5px">Kirish</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

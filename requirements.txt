@@ -1,0 +1,11 @@
+Django==5.2.*
+python-decouple==3.8
+whitenoise==6.*
+psycopg[binary]==3.*
+pytest==8.*
+pytest-django==4.*
+qrcode==8.*
+reportlab==4.*
+openpyxl==3.*
+celery[redis]==5.*
+sentry-sdk[django]==2.*

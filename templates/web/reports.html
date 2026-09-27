@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% load web_extras %}
+{% block content %}
+<div class="top"><h2>Hisobot</h2><a class="btn pri" href="{% url 'finance_dashboard' %}">Kengaytirilgan boshqaruv hisoboti</a></div>
+
+<div class="card">
+<h2 style="font-size:15px;margin-bottom:12px">Oylar bo'yicha yig'ilish</h2>
+<table>
+<tr><th>Davr</th><th class="num">Hisoblangan</th><th class="num">Yig'ilgan</th><th class="num">Qarz</th><th style="width:160px">Foiz</th></tr>
+{% for m in months %}
+<tr><td>{{ m.period|date:"F Y" }}</td>
+<td class="num">{{ m.charged|som }}</td>
+<td class="num green">{{ m.paid|som }}</td>
+<td class="num {% if m.debt > 0 %}red{% endif %}">{{ m.debt|som }}</td>
+<td><div class="bar"><span style="width:{{ m.rate }}%"></span></div>
+    <div class="help">{{ m.rate }}%</div></td></tr>
+{% endfor %}
+</table></div>
+
+<div class="card">
+<div class="top"><h2 style="font-size:15px">Guruhlar kesimi</h2>
+<form method="get"><select name="period" class="input select" style="width:auto" onchange="this.form.submit()">
+{% for p in periods %}<option value="{{ p|date:'Y-m' }}" {% if p == period %}selected{% endif %}>{{ p|date:"F Y" }}</option>{% endfor %}
+</select></form></div>
+<table>
+<tr><th>Guruh</th><th class="num">Hisoblangan</th><th class="num">Yig'ilgan</th><th class="num">Qarz</th></tr>
+{% for r in groups %}
+<tr><td><a href="{% url 'group_detail' r.g.id %}">{{ r.g.name }}</a></td>
+<td class="num">{{ r.charged|som }}</td><td class="num green">{{ r.paid|som }}</td>
+<td class="num {% if r.debt > 0 %}red{% endif %}">{{ r.debt|som }}</td></tr>
+{% empty %}<tr><td colspan="4" class="muted">Ma'lumot yo'q</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

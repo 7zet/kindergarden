@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top"><h2>Guruhlar</h2>{% if perms.school.add_group %}<a class="btn pri" href="{% url 'group_new' %}">+ Guruh</a>{% endif %}</div>
+<div class="card"><table>
+<tr><th>Nomi</th><th>Yosh</th><th class="num">Bolalar</th><th class="num">Bugun</th><th>Asosiy Tarbiyachilar</th><th>Holat</th><th></th></tr>
+{% for g in groups %}
+<tr><td><a href="{% url 'group_detail' g.id %}">{{ g.name }}</a></td>
+<td class="sub">{% if g.age_from %}{{ g.age_from }}–{{ g.age_to }}{% else %}—{% endif %}</td>
+<td class="num">{{ g.n_active }} / {{ g.capacity }}{% if g.n_reserved %}
+  <span class="sub">+{{ g.n_reserved }}</span>{% endif %}</td>
+<td class="num">{{ g.n_present }}</td>
+<td class="sub">{{ g.lead_teacher.full_name|default:"—" }}
+  {% if g.room_number %}<br><span class="muted">xona {{ g.room_number }}</span>{% endif %}</td>
+<td><span class="tag {% if g.occupancy == 'open' %}t-paid{% elif g.occupancy == 'full' %}t-partial{% else %}t-void{% endif %}">{{ g.occupancy_display }}</span></td>
+<td class="num"><div class="table-actions"><a class="mini-action" href="{% url 'attendance' g.id %}"><span>✓</span>Davomat</a><a class="mini-action" href="{% url 'tabel' g.id %}"><span>▦</span>Tabel</a>{% if perms.school.add_group %}<a class="mini-action" href="{% url 'group_edit' g.id %}"><span>✎</span>Tahrir</a>{% endif %}</div></td></tr>
+{% empty %}<tr><td colspan="7" class="muted">Guruh yo'q</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="top"><div><h2>Telegram xabarlar nazorati</h2><div class="sub">Yuborilmagan va xato xabarlar</div></div></div>
+{% if stuck %}<div class="warn">8 urinishdan keyin to'xtagan xabarlar: <b>{{ stuck }}</b></div>{% endif %}
+<div class="card"><table><tr><th>Vaqt</th><th>Turi</th><th>Holat</th><th>Urinish</th><th>Xato</th><th></th></tr>
+{% for x in rows %}<tr><td>{{ x.available_at|date:"d.m.Y H:i" }}</td><td>{{ x.kind }}</td><td>{{ x.get_status_display }}</td><td>{{ x.attempts }}</td><td class="sub">{{ x.last_error }}</td><td>{% if x.status == 'failed' %}<form method="post">{% csrf_token %}<input type="hidden" name="id" value="{{ x.id }}"><button class="btn">Qayta yuborish</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="6">Xabar yo'q</td></tr>{% endfor %}</table></div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top"><h2>Ish kunlari kalendari</h2>
+<form method="get"><select name="period" class="input select" style="width:auto" onchange="this.form.submit()">
+{% for p in periods %}<option value="{{ p|date:'Y-m' }}" {% if p == period %}selected{% endif %}>{{ p|date:"F Y" }}</option>{% endfor %}
+</select></form></div>
+
+<div class="card" style="max-width:520px">
+<p class="sub" style="margin-bottom:12px">Kunni bosib ish kuni / dam olish kunini almashtiring.
+Bayramlarni shu yerda belgilang — proratsiya shu kalendar bo'yicha hisoblanadi.</p>
+<form method="post" data-save-replace>{% csrf_token %}
+<input type="hidden" name="period" value="{{ period|date:'Y-m' }}">
+<div class="cal">
+  <div class="h">Du</div><div class="h">Se</div><div class="h">Ch</div><div class="h">Pa</div>
+  <div class="h">Ju</div><div class="h">Sh</div><div class="h">Ya</div>
+  {% for i in lead %}<div></div>{% endfor %}
+  {% for d in days %}
+  <div><input type="checkbox" id="d{{ forloop.counter }}" name="working" value="{{ d.d|date:'Y-m-d' }}" {% if d.working %}checked{% endif %}>
+  <label for="d{{ forloop.counter }}">{{ d.d|date:"j" }}{% if d.custom %}<span style="color:#d97757">*</span>{% endif %}</label></div>
+  {% endfor %}
+</div>
+<div class="row" style="margin-top:14px;justify-content:space-between">
+  <span class="sub">Ish kunlari: <b>{{ count }}</b></span>
+  <button class="btn pri" data-save-button>Saqlash</button>
+</div>
+</form></div>
+<script>
+(() => {
+  const form = document.querySelector('[data-save-replace]');
+  if (!form || !window.fetch) return;
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = form.querySelector('[data-save-button]');
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Saqlanmoqda…';
+    try {
+      const response = await fetch(form.action || location.href, {
+        method: 'POST', body: new FormData(form), credentials: 'same-origin',
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+      });
+      if (!response.ok) throw new Error('Saqlashda xato');
+      // Joriy calendar history entry almashtiriladi: Back avvalgi bo'limga qaytadi.
+      location.replace(response.url);
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = original;
+      const box = document.createElement('div');
+      box.className = 'msg err';
+      box.textContent = 'Kalendarni saqlab bo‘lmadi. Internetni tekshirib qayta urining.';
+      form.prepend(box);
+    }
+  });
+})();
+</script>
+{% endblock %}

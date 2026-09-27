@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top"><h2>Foydalanuvchilar</h2>
+<div class="row"><a class="btn" href="{% url 'role_new' %}">+ Rol</a>
+<a class="btn pri" href="{% url 'user_new' %}">+ Foydalanuvchi</a></div></div>
+
+<div class="card"><div class="responsive-table"><table>
+<tr><th>F.I.O.</th><th>Telefon</th><th>Rol</th><th>Holat</th><th>Telegram</th><th class="num">Amallar</th></tr>
+{% for u in users %}
+<tr><td>{{ u.full_name }}</td><td class="sub">{{ u.phone }}</td>
+<td>{% if u.is_owner %}<span class="tag t-partial">Egasi</span>{% else %}{{ u.role.name|default:"—" }}{% endif %}</td>
+<td>{% if u.is_active %}<span class="tag t-paid">faol</span>{% else %}<span class="tag t-void">bloklangan</span>{% endif %}{% if u.must_change_password %} <span class="tag t-issued">parol vaqtinchalik</span>{% endif %}</td>
+<td>{% if u.staff_telegram %}<span class="tag t-paid">ulangan</span>{% else %}<span class="tag t-issued">ulanmagan</span>{% endif %}</td>
+<td class="num"><details class="row-action user-actions"><summary class="btn">Boshqarish</summary><div class="action-popover">
+  <a class="btn" href="{% url 'user_edit' u.id %}">Tahrirlash</a>
+  {% if u == request.user %}<a class="btn" href="{% url 'own_password_change' %}">Parolimni almashtirish</a>{% else %}<a class="btn" href="{% url 'user_password_reset' u.id %}">Parolni almashtirish</a>{% endif %}
+  <a class="btn" href="{% url 'staff_telegram_link' u.id %}">Telegram skaner</a>
+  {% if u != request.user %}<form method="post" action="{% url 'user_terminate_sessions' u.id %}" data-confirm="Ushbu foydalanuvchining barcha sessiyalari tugatilsinmi?">{% csrf_token %}<button class="btn">Sessiyalarni tugatish</button></form>{% endif %}
+  {% if u.staff_telegram %}<form method="post" action="{% url 'user_unlink_telegram' u.id %}" data-confirm="Telegram ulanishi uzilsinmi?">{% csrf_token %}<button class="btn">Telegramni uzish</button></form>{% endif %}
+  {% if not u.is_owner and u != request.user %}<form method="post" action="{% url 'user_toggle_active' u.id %}" data-confirm="Foydalanuvchi holati o'zgartirilsinmi?">{% csrf_token %}<button class="btn {% if u.is_active %}danger-outline{% endif %}">{% if u.is_active %}Bloklash{% else %}Faollashtirish{% endif %}</button></form>{% endif %}
+</div></details></td></tr>
+{% endfor %}
+</table></div></div>
+
+<div class="card"><h2 style="font-size:15px;margin-bottom:10px">Rollar</h2>
+<div class="responsive-table"><table><tr><th>Nomi</th><th class="num">Ruxsatlar</th><th class="num">Xodimlar</th><th class="num">Amallar</th></tr>
+{% for r in roles %}<tr><td>{{ r.name }}{% if r.is_system %} <span class="tag t-issued">tizimli</span>{% endif %}</td><td class="num">{{ r.permissions.count }}</td><td class="num">{{ r.users.count }}</td><td class="num"><div class="table-actions"><a class="mini-action" href="{% url 'role_edit' r.id %}">Tahrirlash</a>{% if not r.is_system and not r.users.exists %}<form method="post" action="{% url 'role_delete' r.id %}" data-confirm="Bu rol o'chirilsinmi?">{% csrf_token %}<button class="mini-action danger-outline">O'chirish</button></form>{% endif %}</div></td></tr>
+{% empty %}<tr><td colspan="4" class="muted">Rol yo'q. Egasi yangi rol yaratib, ruxsat beradi.</td></tr>{% endfor %}
+</table></div></div>
+{% endblock %}
